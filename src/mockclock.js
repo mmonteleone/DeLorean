@@ -12,8 +12,11 @@
     var global = this;
     var globalizedApi = false;
     var funcs = {};
-    var offsetMs = 0;
+    var advancedMs = 0;
+    var elapsedMs = 0;
     var funcCount = 0;
+    var currentlyAdvancing = false;
+    var executionInterrupted = false;
 
     var originalClock = {
         setTimeout: global.setTimeout,
@@ -27,7 +30,7 @@
         var shiftedDate;
         if(arguments.length === 0) {
             shiftedDate = new originalClock.Date();
-            shiftedDate.setMilliseconds(shiftedDate.getMilliseconds() + offsetMs);
+            shiftedDate.setMilliseconds(shiftedDate.getMilliseconds() + advancedMs);
         } else if(arguments.length == 1) {
             shiftedDate = new originalClock.Date(arguments[0]);
         } else {
@@ -47,71 +50,93 @@
     var reset = function(){
         funcs = {};
         funcCount = 0;
-        offsetMs = 0;
+        advancedMs = 0;
+        currentlyAdvancing = false;
+        executionInterrupted = false;
+        elapsedMs = 0;
     };
     
     var isNumeric = function(value) {
         return value !== null && !isNaN(value);
     };
+    
 
     var advance = function(ms){
         if(!isNumeric(ms) || ms < 0) {
             throw("'ms' argument must be a positive number");
         }
         var toRun = [];
-        var start = offsetMs;
+        var start = advancedMs;
         var fn;
-        offsetMs += ms;
+        advancedMs += ms;
 
-        // collect applicable functions to run
-        for(var id in funcs) {
-            fn = funcs[id];
-            // non-repeating timeouts that fall within time range
-            if(!fn.repeats && fn.firstRunAt <= offsetMs) {
-                toRun.push({fn:fn, at:fn.firstRunAt});
-            // collect applicable intervals        
-            } else {
-                if(fn.lastRunAt === null && 
-                    fn.firstRunAt > start && 
-                    (fn.lastRunAt || fn.firstRunAt) <= offsetMs) {                        
-                    fn.lastRunAt = fn.firstRunAt;
-                    toRun.push({fn:fn, at:fn.lastRunAt});
+        var executeScheduledFunction = function(fn) {
+            currentlyAdvancing = true;
+            try {
+                elapsedMs = toRun[i].at;
+                fn.apply(global);
+            } finally {
+                currentlyAdvancing = false;
+            }    
+        };
+        
+        do {
+            executionInterrupted = false;
+            
+            // collect applicable functions to run        
+            for(var id in funcs) {
+                fn = funcs[id];
+                // non-repeating timeouts that fall within time range
+                if(!fn.repeats && fn.firstRunAt <= advancedMs) {
+                    toRun.push({fn:fn, at:fn.firstRunAt});
+                // collect applicable intervals        
+                } else {
+                    if(fn.lastRunAt === null && 
+                        fn.firstRunAt > start && 
+                        (fn.lastRunAt || fn.firstRunAt) <= advancedMs) {                        
+                        fn.lastRunAt = fn.firstRunAt;
+                        toRun.push({fn:fn, at:fn.lastRunAt});
+                    }
+                    // add as many instances of interval fn as would occur within range
+                    while(fn.lastRunAt + fn.ms <= advancedMs) {
+                        fn.lastRunAt += fn.ms;
+                        toRun.push({fn:fn, at:fn.lastRunAt});
+                    }
                 }
-                // add as many instances of interval fn as would occur within range
-                while(fn.lastRunAt + fn.ms <= offsetMs) {
-                    fn.lastRunAt += fn.ms;
-                    toRun.push({fn:fn, at:fn.lastRunAt});
-                }
-            }
-        }
+            }            
 
-        // sort functions to run in correct order
-        toRun.sort(function(a,b){
-            // ~ order by execution point ASC, interval length DESC, order of addition ASC
-            var order = a.at - b.at;
-            if(order === 0) {
-                order = b.fn.ms - a.fn.ms;
+            // sort functions to run in correct order
+            toRun.sort(function(a,b){
+                // ~ order by execution point ASC, interval length DESC, order of addition ASC
+                var order = a.at - b.at;
                 if(order === 0) {
-                    order = a.fn.id - b.fn.id;
+                    order = b.fn.ms - a.fn.ms;
+                    if(order === 0) {
+                        order = a.fn.id - b.fn.id;
+                    }
                 }
-            }
-            return order;
-        });
+                return order;
+            });
 
-        // run functions
-        for(var i=0; i<toRun.length; ++i) {
-            fn = toRun[i].fn;
-            // only run fn's that still exist, since a particular fn could
-            // have been cleared by a run fn since the fn was previously scheduled
-            if(!!funcs[fn.id]) {
-                // run fn on global context
-                fn.fn.apply(global); 
-                // for efficiency, remove non-repeating after execution
-                if(!fn.repeats) {
-                    removeFunction(fn.id);
+            // run functions
+            for(var i=0; i<toRun.length; ++i) {
+
+                fn = toRun[i].fn;
+                // only run fn's that still exist, since a particular fn could
+                // have been cleared by a run fn since the fn was previously scheduled
+                if(!!funcs[fn.id]) {
+                    // run fn on global context
+                    executeScheduledFunction(fn.fn);
+                    // for efficiency, remove non-repeating after execution
+                    if(!fn.repeats) {
+                        removeFunction(fn.id);
+                    }
+                    if(executionInterrupted) { break; }
                 }
-            }
-        }
+            }            
+                        
+        } while(executionInterrupted);
+        
     };
 
     var addFunction = function(fn, ms, repeats){        
@@ -120,8 +145,9 @@
         if(typeof(fn)=='string') {
             fn = new Function(fn);
         }
+        var at = currentlyAdvancing ? elapsedMs : advancedMs;
         var id = funcCount++;
-        funcs[id] = {id:id, fn:fn, ms:ms, addedAt:offsetMs, firstRunAt:(offsetMs+ms), lastRunAt:null, repeats:repeats};        
+        funcs[id] = {id:id, fn:fn, ms:ms, addedAt:at, firstRunAt:(at+ms), lastRunAt:null, repeats:repeats};        
         return id;
     };
 
@@ -138,6 +164,12 @@
     };
 
     reset();
+    
+    var conditionallyInterruptExecution = function(){
+        if(currentlyAdvancing) {
+            executionInterrupted = true;
+        }        
+    };
 
     var mockApi = {
         setTimeout: function(fn, ms){
@@ -149,6 +181,8 @@
             } else if (arguments.length === 1) {
                 return addFunction(fn, 0, false);                
             }
+            // stop any currently executing range of fns
+            conditionallyInterruptExecution();
             // schedule func
             return addFunction(fn, ms, false);
         },
@@ -161,6 +195,8 @@
             } else if (arguments.length === 1) {
                 return addFunction(fn, 0, false);                
             } 
+            // stop any currently executing range of fns
+            conditionallyInterruptExecution();            
             // schedule func
             return addFunction(fn, ms, true);
         },

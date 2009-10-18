@@ -1,5 +1,5 @@
 /**
- * MockClock - JavaScript flux capacitor for time-bound testing
+ * MockClock - Flux capacitor for time-bound JavaScript unit testing, including timeouts, intervals, and dates
  * 
  * http://michaelmonteleone.net/projects/mockclock
  * http://github.com/mmonteleone/mockclock

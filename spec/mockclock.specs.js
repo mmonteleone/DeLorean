@@ -236,12 +236,15 @@ QUnit.specify("MockClock", function() {
                         runs.push('b');
                         MockClock.setInterval(function(){
                             runs.push('c');
-                        }, 2)
+                            MockClock.setTimeout(function(){
+                                runs.push('d');            
+                            }, 1);
+                        }, 2);
                     }, 3);
                 }, 5);
-                MockClock.advance(12);
-                assert(runs).isSameAs(['a','b','c','c']);
-            });
+                MockClock.advance(15);
+                assert(runs).isSameAs(['a','b','c','d','c','d','c','d']);
+            });            
         });
         describe("when passed a string instead of fn", function(){
             it("should schedule an evaling of fn", function(){

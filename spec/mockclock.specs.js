@@ -228,7 +228,7 @@ QUnit.specify("MockClock", function() {
                 MockClock.advance(15);
                 assert(count).equals(3);
             });
-            it("should allow for the setting of intervals within other intervals", function(){
+            it("should allow for the setting of intervals within other timeouts and reverse", function(){
                 var runs = [];
                 MockClock.setTimeout(function(){
                     runs.push('a');
@@ -244,7 +244,18 @@ QUnit.specify("MockClock", function() {
                 }, 5);
                 MockClock.advance(15);
                 assert(runs).isSameAs(['a','b','c','d','c','d','c','d']);
-            });            
+            });       
+            it("should allow for setting of intervals within intervals", function(){
+                var runs = [];
+                MockClock.setInterval(function(){
+                    runs.push('a');
+                    MockClock.setInterval(function(){
+                        runs.push('b');                                                                        
+                    }, 3);                    
+                }, 5);
+                MockClock.advance(20);
+                assert(runs).isSameAs(['a','b','a','b','b','b','a','b','b','b','b','a','b']);
+            });   
         });
         describe("when passed a string instead of fn", function(){
             it("should schedule an evaling of fn", function(){

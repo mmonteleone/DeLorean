@@ -88,7 +88,6 @@
                 fn = funcs[id];
                 // non-repeating timeouts that fall within time range
                 if(!fn.repeats && fn.firstRunAt <= advancedMs) {
-                    
                     toRun.push({fn:fn, at:fn.firstRunAt});
                 // collect applicable intervals        
                 } else {
@@ -99,7 +98,7 @@
                         toRun.push({fn:fn, at:fn.lastRunAt});
                     }
                     // add as many instances of interval fn as would occur within range
-                    while(fn.lastRunAt + fn.ms <= advancedMs) {
+                    while((fn.lastRunAt || fn.firstRunAt) + fn.ms <= advancedMs) {
                         fn.lastRunAt += fn.ms;
                         toRun.push({fn:fn, at:fn.lastRunAt});
                     }
@@ -120,6 +119,7 @@
             });
             
             // run functions
+            var toSplice = [];
             for(var i=0; i<toRun.length; ++i) {
 
                 fn = toRun[i].fn;
@@ -131,9 +131,14 @@
                     // for efficiency, remove non-repeating after execution
                     if(!fn.repeats) {
                         removeFunction(fn.id);                        
-                    } 
-                    if(executionInterrupted) { toRun.splice(i,1); break; }
+                    } else {
+                        toSplice.push(i);
+                    }
+                    if(executionInterrupted) { break; }
                 }
+            }
+            for(var i=toSplice.length-1; i>=0; i--) {                
+                toRun.splice(toSplice[i],1);
             }
                         
         } while(executionInterrupted);

@@ -30,7 +30,7 @@
         var shiftedDate;
         if(arguments.length === 0) {
             shiftedDate = new originalClock.Date();
-            shiftedDate.setMilliseconds(shiftedDate.getMilliseconds() + advancedMs);
+            shiftedDate.setMilliseconds(shiftedDate.getMilliseconds() + (currentlyAdvancing ? elapsedMs : advancedMs));
         } else if(arguments.length == 1) {
             shiftedDate = new originalClock.Date(arguments[0]);
         } else {

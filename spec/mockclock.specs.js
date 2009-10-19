@@ -537,6 +537,19 @@ QUnit.specify("MockClock", function() {
                 assert(differenceTwoAdvance).equals(400);
                 assert(differenceThreeAdvance).equals(600);
             });
+            it("should create Dates offset by accumulation of elapsed time when created within nested callbacks", function(){
+                var originalDate = new original.Date();
+                var outerDate, innerDate;
+                MockClock.setTimeout(function(){
+                    outerDate = new MockClock.Date();
+                    MockClock.setTimeout(function(){
+                        innerDate = new MockClock.Date();
+                    }, 3);
+                }, 7);
+                MockClock.advance(10);
+                assert(outerDate-originalDate).equals(7);
+                assert(innerDate-originalDate).equals(10);
+            })
         });
     });
 });

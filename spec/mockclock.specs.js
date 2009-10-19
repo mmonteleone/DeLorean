@@ -320,6 +320,24 @@ QUnit.specify("MockClock", function() {
            MockClock.advance(100);
            assert(count).equals(4);     
        });
+       it("should properly clear intervals when cleared from within a nested interval", function(){
+           var runs = [];
+           var outerCount = 0;
+           var innerCount = 0;
+           var outerInterval = MockClock.setInterval(function(){
+               runs.push('a');
+               outerCount++;
+               var innerInterval = MockClock.setInterval(function(){
+                   runs.push('b');                                      
+                   innerCount++;
+                   if(innerCount === 4) {
+                       MockClock.clearInterval(outerInterval);
+                   }
+               }, 3);
+           }, 5);
+           MockClock.advance(15);
+           assert(runs).isSameAs(['a','b','a','b','b','b']);
+       });
     });
     
     describe("advance", function(){

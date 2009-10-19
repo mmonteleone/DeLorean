@@ -131,9 +131,8 @@
                     // for efficiency, remove non-repeating after execution
                     if(!fn.repeats) {
                         removeFunction(fn.id);                        
-                    } else {
-                        toSplice.push(i);
-                    }
+                    } 
+                    toSplice.push(i);
                     if(executionInterrupted) { break; }
                 }
             }

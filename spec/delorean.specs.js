@@ -9,7 +9,7 @@ QUnit.specify.extendAssertions({
     }    
 });
 
-QUnit.specify("MockClock", function() {
+QUnit.specify("DeLorean", function() {
 
     // capture a reference to default timing APIs
     var original = {
@@ -23,43 +23,43 @@ QUnit.specify("MockClock", function() {
     describe("globalApi", function(){
         
         it("should return 'false' by default", function(){
-            var result = MockClock.globalApi();
+            var result = DeLorean.globalApi();
             assert(result).isFalse();
         });
         
         describe("when passed 'true'", function(){
             
             before(function(){
-                MockClock.globalApi(true);
+                DeLorean.globalApi(true);
             });
             
             it("should return 'true' on subsequent calls", function(){
-                var result = MockClock.globalApi();
+                var result = DeLorean.globalApi();
                 assert(result).isTrue();
             });
             
             it("should inject global api", function(){
-                assert(window.Date).equals(MockClock.Date);
-                assert(window.setInterval).equals(MockClock.setInterval);
-                assert(window.setTimeout).equals(MockClock.setTimeout);
-                assert(window.clearInterval).equals(MockClock.clearInterval);
-                assert(window.clearTimeout).equals(MockClock.clearTimeout);
+                assert(window.Date).equals(DeLorean.Date);
+                assert(window.setInterval).equals(DeLorean.setInterval);
+                assert(window.setTimeout).equals(DeLorean.setTimeout);
+                assert(window.clearInterval).equals(DeLorean.clearInterval);
+                assert(window.clearTimeout).equals(DeLorean.clearTimeout);
             });
             
             it("should not inject 'globalApi', 'reset', or 'advance'", function(){
                 assert(window.globalApi).isUndefined();
-                assert(window.reset).isNotEqualTo(MockClock.reset);
+                assert(window.reset).isNotEqualTo(DeLorean.reset);
                 assert(window.advance).isUndefined();
             });
         });
         
         describe("when passed 'false'", function(){
             before(function(){
-                MockClock.globalApi(false);                
+                DeLorean.globalApi(false);                
             });
             
             it("should return 'false' on subsequent calls", function(){
-                var result = MockClock.globalApi();
+                var result = DeLorean.globalApi();
                 assert(result).isFalse();
             });
             
@@ -73,12 +73,12 @@ QUnit.specify("MockClock", function() {
             
             it("should remove injected api if previously injected", function(){
                 // first inject the api and make sure it injected
-                MockClock.globalApi(true);
-                assert(window.Date).equals(MockClock.Date);
+                DeLorean.globalApi(true);
+                assert(window.Date).equals(DeLorean.Date);
                 assert(window.Date).isNotEqualTo(original.Date);
                 
                 // then remove and make sure fully removed
-                MockClock.globalApi(false);
+                DeLorean.globalApi(false);
                 assert(window.Date).equals(original.Date);
                 assert(window.setInterval).equals(original.setInterval);
                 assert(window.setTimeout).equals(original.setTimeout);
@@ -91,65 +91,65 @@ QUnit.specify("MockClock", function() {
     describe("setTimeout", function(){
         
         after(function(){
-            MockClock.reset();            
+            DeLorean.reset();            
         });
         
         describe("exceptional situations", function(){
             it("should throw exception when passed no params", function(){
                 assert(function(){
-                    MockClock.setTimeout();
+                    DeLorean.setTimeout();
                 }).throwsException("Function setTimeout requires at least 1 parameter");
             });
             it("should throw exception when passed just ms", function(){
                 assert(function(){                    
-                    MockClock.setTimeout(45);
+                    DeLorean.setTimeout(45);
                 }).throwsException("useless setTimeout call (missing quotes around argument?)")
             });
             it("should schedule fn at 0 ms when passed just fn", function(){
                 var count = 0;
-                MockClock.setTimeout(function(){
+                DeLorean.setTimeout(function(){
                     count++;                                        
                 });
-                MockClock.advance(5);
+                DeLorean.advance(5);
                 assert(count).equals(1);
             });
         });
         describe("when passed a fn and time", function(){
             it("should return a timeout id", function(){
                 var intervalId = null;
-                intervalId = MockClock.setTimeout(function(){}, 5);
+                intervalId = DeLorean.setTimeout(function(){}, 5);
                 assert(intervalId).isNotNull();
             });
             it("should not run fn when advanced to before the time", function(){
                 var count = 0;
-                MockClock.setTimeout(function(){
+                DeLorean.setTimeout(function(){
                     count++;
                 }, 5);
-                MockClock.advance(4);
+                DeLorean.advance(4);
                 assert(count).equals(0);                              
             });
             it("should run fn once when advanced to exactly the time", function(){
                 var count = 0;
-                MockClock.setTimeout(function(){
+                DeLorean.setTimeout(function(){
                     count++;                    
                 }, 5);
-                MockClock.advance(5);
+                DeLorean.advance(5);
                 assert(count).equals(1);                
             });
             it("should have run fn once when advanced to time and a half", function(){
                 var count = 0;
-                MockClock.setTimeout(function(){
+                DeLorean.setTimeout(function(){
                     count++;                    
                 }, 5);
-                MockClock.advance(8);
+                DeLorean.advance(8);
                 assert(count).equals(1);                
             });
             it("should only have run fn once when advanced three times the time", function(){
                 var count = 0;
-                MockClock.setTimeout(function(){
+                DeLorean.setTimeout(function(){
                     count++;                    
                 }, 5);
-                MockClock.advance(15);
+                DeLorean.advance(15);
                 assert(count).equals(1);                
             });
         });
@@ -158,8 +158,8 @@ QUnit.specify("MockClock", function() {
                 // using a globally-scoped variable since 
                 // eval-created functions don't have access to local scope
                 window.windowedCount = 0;
-                MockClock.setTimeout("window.windowedCount++", 5);
-                MockClock.advance(15);
+                DeLorean.setTimeout("window.windowedCount++", 5);
+                DeLorean.advance(15);
                 assert(window.windowedCount).equals(1);                
             });
         });          
@@ -167,93 +167,93 @@ QUnit.specify("MockClock", function() {
     
     describe("setInterval", function(){
         after(function(){
-            MockClock.reset();            
+            DeLorean.reset();            
         });
         
         describe("exceptional situations", function(){
             it("should throw exception when passed no params", function(){
                 assert(function(){
-                    MockClock.setInterval();                                        
+                    DeLorean.setInterval();                                        
                 }).throwsException("Function setInterval requires at least 1 parameter")
             });
             it("should throw exception when passed just ms", function(){
                 assert(function(){
-                    MockClock.setInterval(45);                                        
+                    DeLorean.setInterval(45);                                        
                 }).throwsException("useless setTimeout call (missing quotes around argument?)")                
             });
             it("should behave like setTimeout with 0 ms when passed just fn", function(){
                 var count = 0;
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     count++;                                        
                 });
-                MockClock.advance(5);
+                DeLorean.advance(5);
                 assert(count).equals(1);                                
             });
         });
         describe("when passed a fn and time", function(){
             it("should return an interval id", function(){
                 var intervalId = null;
-                intervalId = MockClock.setInterval(function(){}, 5);
+                intervalId = DeLorean.setInterval(function(){}, 5);
                 assert(intervalId).isNotNull();                
             });
             it("should not have run fn when advanced to before the time", function(){
                 var count = 0;
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     count++;
                 }, 5);
-                MockClock.advance(4);
+                DeLorean.advance(4);
                 assert(count).equals(0);                
             });
             it("should have run fn once when advanced to exactly the time", function(){
                 var count = 0;
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     count++;
                 }, 5);
-                MockClock.advance(5);
+                DeLorean.advance(5);
                 assert(count).equals(1);                
             });
             it("should have run fn once when advanced to time and a half", function(){
                 var count = 0;
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     count++;
                 }, 5);
-                MockClock.advance(5);
+                DeLorean.advance(5);
                 assert(count).equals(1);                                
             });
             it("should have run fn thrice when advanced to exactly three times", function(){
                 var count = 0;
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     count++;
                 }, 5);
-                MockClock.advance(15);
+                DeLorean.advance(15);
                 assert(count).equals(3);
             });
             it("should allow for the setting of intervals within other timeouts and reverse", function(){
                 var runs = [];
-                MockClock.setTimeout(function(){
+                DeLorean.setTimeout(function(){
                     runs.push('a');
-                    MockClock.setTimeout(function(){
+                    DeLorean.setTimeout(function(){
                         runs.push('b');
-                        MockClock.setInterval(function(){
+                        DeLorean.setInterval(function(){
                             runs.push('c');
-                            MockClock.setTimeout(function(){
+                            DeLorean.setTimeout(function(){
                                 runs.push('d');            
                             }, 1);
                         }, 2);
                     }, 3);
                 }, 5);
-                MockClock.advance(15);
+                DeLorean.advance(15);
                 assert(runs).isSameAs(['a','b','c','d','c','d','c','d']);
             });       
             it("should allow for setting of intervals within intervals", function(){
                 var runs = [];
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     runs.push('a');
-                    MockClock.setInterval(function(){
+                    DeLorean.setInterval(function(){
                         runs.push('b');                                                                        
                     }, 3);                    
                 }, 5);
-                MockClock.advance(20);
+                DeLorean.advance(20);
                 assert(runs).isSameAs(['a','b','a','b','b','b','a','b','b','b','b','a','b']);
             });   
         });
@@ -262,8 +262,8 @@ QUnit.specify("MockClock", function() {
                 // using a globally-scoped variable since 
                 // eval-created functions don't have access to local scope
                 window.windowedCount = 0;
-                MockClock.setInterval("window.windowedCount++", 5);
-                MockClock.advance(15);
+                DeLorean.setInterval("window.windowedCount++", 5);
+                DeLorean.advance(15);
                 assert(window.windowedCount).equals(3);
             });
         });
@@ -271,98 +271,98 @@ QUnit.specify("MockClock", function() {
     
     describe("clearTimeout", function(){
         after(function(){
-            MockClock.reset();           
+            DeLorean.reset();           
         });
         
         it("should not throw exception when passed no key", function(){
             assert(function(){
-                MockClock.clearTimeout();                
+                DeLorean.clearTimeout();                
             }).doesNotThrowException();
         });
         it("should not run when advanced past fn when passed a valid key", function(){
             var count = 0;
-            var intervalId = MockClock.setTimeout(function(){
+            var intervalId = DeLorean.setTimeout(function(){
                 count++;                
             }, 5);
-            MockClock.clearTimeout(intervalId);
-            MockClock.advance(15);
+            DeLorean.clearTimeout(intervalId);
+            DeLorean.advance(15);
             assert(count).equals(0);
         });
     });
     
     describe("clearInterval", function(){
        after(function(){
-           MockClock.reset();           
+           DeLorean.reset();           
        });
        
        it("should not throw exception when passed no key", function(){
            assert(function(){
-               MockClock.clearTimeout();                
+               DeLorean.clearTimeout();                
            }).doesNotThrowException();           
        });
        it("should not run when advanced past fn multiple times when passed a valid key", function(){
            var count = 0;
-           var intervalId = MockClock.setInterval(function(){
+           var intervalId = DeLorean.setInterval(function(){
                count++;                
            }, 5);
-           MockClock.clearInterval(intervalId);
-           MockClock.advance(15);
+           DeLorean.clearInterval(intervalId);
+           DeLorean.advance(15);
            assert(count).equals(0);           
        });
        it("should not continue to run an interval which clears itself", function(){
            var count = 0;
-           var intervalId = MockClock.setInterval(function(){
+           var intervalId = DeLorean.setInterval(function(){
                count++;
                if(count === 4) {
-                   MockClock.clearInterval(intervalId);                   
+                   DeLorean.clearInterval(intervalId);                   
                }
            }, 5);      
-           MockClock.advance(100);
+           DeLorean.advance(100);
            assert(count).equals(4);     
        });
        it("should properly clear intervals when cleared from within a nested interval", function(){
            var runs = [];
            var outerCount = 0;
            var innerCount = 0;
-           var outerInterval = MockClock.setInterval(function(){
+           var outerInterval = DeLorean.setInterval(function(){
                runs.push('a');
                outerCount++;
-               var innerInterval = MockClock.setInterval(function(){
+               var innerInterval = DeLorean.setInterval(function(){
                    runs.push('b');                                      
                    innerCount++;
                    if(innerCount === 4) {
-                       MockClock.clearInterval(outerInterval);
+                       DeLorean.clearInterval(outerInterval);
                    }
                }, 3);
            }, 5);
-           MockClock.advance(15);
+           DeLorean.advance(15);
            assert(runs).isSameAs(['a','b','a','b','b','b']);
        });
     });
     
     describe("advance", function(){
         after(function(){
-            MockClock.reset();           
+            DeLorean.reset();           
         });
         
         it("should throw exception when not passed a positive ms", function(){
             assert(function(){
-                MockClock.advance(-4);
+                DeLorean.advance(-4);
             }).throwsException("'ms' argument must be a positive number");
             assert(function(){
-                MockClock.advance("somestring");
+                DeLorean.advance("somestring");
             }).throwsException("'ms' argument must be a positive number");
         });
         it("should run scheduled fns within range when passed a ms", function(){
             var funcRunA = false;
             var funcRunB = false;            
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 funcRunA = true;
             }, 5);
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 funcRunB = true;                
             }, 10)
-            MockClock.advance(11);
+            DeLorean.advance(11);
             assert(funcRunA).isTrue();
             assert(funcRunB).isTrue();
         });
@@ -370,18 +370,18 @@ QUnit.specify("MockClock", function() {
             var funcRunACount = 0;
             var funcRunBCount = 0;
             var funcRunCCount = 0;
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 funcRunACount++;                
             }, 10);
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 funcRunBCount++;                
             }, 12);
-            MockClock.setInterval(function(){
+            DeLorean.setInterval(function(){
                 funcRunCCount++;                
             }, 5);
-            MockClock.advance(5);
-            MockClock.advance(5);
-            MockClock.advance(10);
+            DeLorean.advance(5);
+            DeLorean.advance(5);
+            DeLorean.advance(10);
             assert(funcRunACount).equals(1);
             assert(funcRunBCount).equals(1);
             assert(funcRunCCount).equals(4);
@@ -389,78 +389,78 @@ QUnit.specify("MockClock", function() {
         it("should execute timeouted functions with 'this' scoped to global", function(){
             var global = window;
             var scope = null;
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 scope = this;                
             }, 10);
-            MockClock.advance(10);
+            DeLorean.advance(10);
             assert(scope).equals(global);
         });
         it("should execute intervaled functions with 'this' scoped to global", function(){
             var global = window;
             var scope = null;
-            MockClock.setInterval(function(){
+            DeLorean.setInterval(function(){
                 scope = this;                
             }, 10);
-            MockClock.advance(10);
+            DeLorean.advance(10);
             assert(scope).equals(global);
         });
         it("should execute interweaving of intervals and timeouts in order they would occur", function(){
             var runs = [];
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 runs.push('a');
             }, 10);
-            MockClock.setInterval(function(){
+            DeLorean.setInterval(function(){
                 runs.push('b');                
             }, 3);
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 runs.push('c');                                
             }, 5);
-            MockClock.setInterval(function(){
+            DeLorean.setInterval(function(){
                 runs.push('d');                
             }, 7);
-            MockClock.advance(15);
-            MockClock.advance(7);
+            DeLorean.advance(15);
+            DeLorean.advance(7);
             assert(runs).isSameAs(['b','c','b','d','b','a','b','d','b','b','d','b']);
         });
         describe("when schedules collide", function() {
             it("should first run fns on longer intervals before those on shorter", function(){
                 var runs = [];
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     runs.push('a');                    
                 }, 7);                
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     runs.push('b');
                 }, 21);
-                MockClock.advance(21);
+                DeLorean.advance(21);
                 assert(runs).isSameAs(['a','a','b','a']);
             });
             it("should first run fns on longer intervals before those on shorter including timeouts", function(){
                 var runs = [];
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     runs.push('a');                    
                 }, 7);                
-                MockClock.setTimeout(function(){
+                DeLorean.setTimeout(function(){
                     runs.push('b');
                 }, 21);
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     runs.push('c');
                 }, 14);
-                MockClock.advance(21);
+                DeLorean.advance(21);
                 assert(runs).isSameAs(['a','c','a','b','a']);
             });
             it("should then run fns in order of scheduling when intervals are equal", function(){
                 var runs = [];
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     runs.push('a');
                 }, 7);
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     runs.push('b');
                 }, 7);
-                MockClock.setInterval(function(){
+                DeLorean.setInterval(function(){
                     runs.push('c');
                 }, 14);
-                MockClock.advance(6);
-                MockClock.advance(21);
+                DeLorean.advance(6);
+                DeLorean.advance(21);
                 assert(runs).isSameAs(['a','b','c','a','b','a','b']);
             });
         });
@@ -468,32 +468,32 @@ QUnit.specify("MockClock", function() {
     
     describe("reset", function(){
         after(function(){
-            MockClock.reset();           
+            DeLorean.reset();           
         });
         
         it("should not have called fns when fns scheduled, reset called, and advanced", function(){
             var funcRunA = false;
             var funcRunB = false;            
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 funcRunA = true;
             }, 5);
-            MockClock.setTimeout(function(){
+            DeLorean.setTimeout(function(){
                 funcRunB = true;                
             }, 10)
-            MockClock.reset();
-            MockClock.advance(11);
+            DeLorean.reset();
+            DeLorean.advance(11);
             assert(funcRunA).isFalse();
             assert(funcRunB).isFalse();
         });
         it("should reset offset so that new Dates are equal to real Date", function(){
             var originalDate = new original.Date();
             
-            MockClock.advance(200);
-            var mockDateAdvance = new MockClock.Date();
+            DeLorean.advance(200);
+            var mockDateAdvance = new DeLorean.Date();
             var difference = mockDateAdvance - originalDate;
             
-            MockClock.reset();
-            var mockDateAfterReset = new MockClock.Date();
+            DeLorean.reset();
+            var mockDateAfterReset = new DeLorean.Date();
             var differenceReset = mockDateAfterReset - originalDate;
             
             assert(difference).equals(200);
@@ -503,52 +503,52 @@ QUnit.specify("MockClock", function() {
     
     describe("Date", function(){
         after(function(){
-            MockClock.reset();           
+            DeLorean.reset();           
         });
         
         it("should behave same as native Date when passed one argument", function(){
             var originalDate = new original.Date(699769876987);
-            var mockDate = new MockClock.Date(699769876987);
-            MockClock.advance(200);
-            var advancedMockDate = new MockClock.Date(699769876987);
+            var mockDate = new DeLorean.Date(699769876987);
+            DeLorean.advance(200);
+            var advancedMockDate = new DeLorean.Date(699769876987);
             assert(originalDate).isSameAs(mockDate);
             assert(originalDate).isSameAs(advancedMockDate);
         });
         it("should behave same as native Date when passed multiple arguments", function(){
             var originalDate = new original.Date(1995,11,17);
-            var mockDate = new MockClock.Date(1995,11,17);
-            MockClock.advance(200);
-            var advancedMockDate = new MockClock.Date(1995,11,17);
+            var mockDate = new DeLorean.Date(1995,11,17);
+            DeLorean.advance(200);
+            var advancedMockDate = new DeLorean.Date(1995,11,17);
             assert(originalDate).isSameAs(mockDate);
             assert(originalDate).isSameAs(advancedMockDate);            
         });
         describe("when passed no argument", function(){
             it("should create Date with value same as native Date when not yet advanced", function(){
                 var originalDate = new original.Date();
-                var mockDate = new MockClock.Date();
+                var mockDate = new DeLorean.Date();
                 var difference = mockDate - originalDate;
                 assert(difference).equals(0);                
             });
             it("should create Date offset by the advanced ms when advanced once", function(){
                 var originalDate = new original.Date();
-                MockClock.advance(200);
-                var mockDate = new MockClock.Date();
+                DeLorean.advance(200);
+                var mockDate = new DeLorean.Date();
                 var difference = mockDate - originalDate;
                 assert(difference).equals(200);                
             });
             it("should create Dates offset by accumulation of advancements when advanced multiple times", function(){
                 var originalDate = new original.Date();
                 
-                MockClock.advance(200);
-                var mockDateOneAdvance = new MockClock.Date();
+                DeLorean.advance(200);
+                var mockDateOneAdvance = new DeLorean.Date();
                 var differenceOneAdvance = mockDateOneAdvance - originalDate;
                 
-                MockClock.advance(200);
-                var mockDateTwoAdvance = new MockClock.Date();
+                DeLorean.advance(200);
+                var mockDateTwoAdvance = new DeLorean.Date();
                 var differenceTwoAdvance = mockDateTwoAdvance - originalDate;
                 
-                MockClock.advance(200);
-                var mockDateThreeAdvance = new MockClock.Date();
+                DeLorean.advance(200);
+                var mockDateThreeAdvance = new DeLorean.Date();
                 var differenceThreeAdvance = mockDateThreeAdvance - originalDate;
                 
                 assert(differenceOneAdvance).equals(200);
@@ -558,13 +558,13 @@ QUnit.specify("MockClock", function() {
             it("should create Dates offset by accumulation of elapsed time when created within nested callbacks", function(){
                 var originalDate = new original.Date();
                 var outerDate, innerDate;
-                MockClock.setTimeout(function(){
-                    outerDate = new MockClock.Date();
-                    MockClock.setTimeout(function(){
-                        innerDate = new MockClock.Date();
+                DeLorean.setTimeout(function(){
+                    outerDate = new DeLorean.Date();
+                    DeLorean.setTimeout(function(){
+                        innerDate = new DeLorean.Date();
                     }, 3);
                 }, 7);
-                MockClock.advance(10);
+                DeLorean.advance(10);
                 assert(outerDate-originalDate).equals(7);
                 assert(innerDate-originalDate).equals(10);
             })

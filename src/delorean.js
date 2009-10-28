@@ -1,8 +1,8 @@
 /**
- * MockClock - Flux capacitor for time-bound JavaScript unit testing, including timeouts, intervals, and dates
+ * DeLorean - Flux capacitor for faking time-bound JavaScript unit testing, including timeouts, intervals, and dates
  * 
- * http://michaelmonteleone.net/projects/mockclock
- * http://github.com/mmonteleone/mockclock
+ * http://michaelmonteleone.net/projects/delorean
+ * http://github.com/mmonteleone/delorean
  *
  * Copyright (c) 2009 Michael Monteleone
  * Dual licensed under the MIT (MIT-LICENSE.txt)
@@ -65,7 +65,7 @@
         if(!isNumeric(ms) || ms < 0) {
             throw("'ms' argument must be a positive number");
         }
-        var toRun = [];
+        var queue = [];
         var start = advancedMs;
         var fn;
         advancedMs += ms;
@@ -73,7 +73,7 @@
         var executeScheduledFunction = function(fn) {
             currentlyAdvancing = true;
             try {
-                elapsedMs = toRun[i].at;
+                elapsedMs = queue[i].at;
                 fn.apply(global);
             } finally {
                 currentlyAdvancing = false;
@@ -88,25 +88,25 @@
                 fn = funcs[id];
                 // non-repeating timeouts that fall within time range
                 if(!fn.repeats && fn.firstRunAt <= advancedMs) {
-                    toRun.push({fn:fn, at:fn.firstRunAt});
+                    queue.push({fn:fn, at:fn.firstRunAt});
                 // collect applicable intervals        
                 } else {
                     if(fn.lastRunAt === null && 
                         fn.firstRunAt > start && 
                         (fn.lastRunAt || fn.firstRunAt) <= advancedMs) {
                         fn.lastRunAt = fn.firstRunAt;
-                        toRun.push({fn:fn, at:fn.lastRunAt});
+                        queue.push({fn:fn, at:fn.lastRunAt});
                     }
                     // add as many instances of interval fn as would occur within range
                     while((fn.lastRunAt || fn.firstRunAt) + fn.ms <= advancedMs) {
                         fn.lastRunAt += fn.ms;
-                        toRun.push({fn:fn, at:fn.lastRunAt});
+                        queue.push({fn:fn, at:fn.lastRunAt});
                     }
                 }
             }            
 
             // sort functions to run in correct order
-            toRun.sort(function(a,b){
+            queue.sort(function(a,b){
                 // ~ order by execution point ASC, interval length DESC, order of addition ASC
                 var order = a.at - b.at;
                 if(order === 0) {
@@ -120,9 +120,9 @@
             
             // run functions
             var toSplice = [];
-            for(var i=0; i<toRun.length; ++i) {
+            for(var i=0; i<queue.length; ++i) {
 
-                fn = toRun[i].fn;
+                fn = queue[i].fn;
                 // only run fn's that still exist, since a particular fn could
                 // have been cleared by a run fn since the fn was previously scheduled
                 if(!!funcs[fn.id]) {
@@ -137,8 +137,9 @@
                 }
             }
             for(var i=toSplice.length-1; i>=0; i--) {                
-                toRun.splice(toSplice[i],1);
+                queue.splice(toSplice[i],1);
             }
+            
                         
         } while(executionInterrupted);
         
@@ -163,7 +164,7 @@
     var globalApi = function(value){
         if(typeof(value)!=='undefined') {
             globalizedApi = value;
-            extend(global, globalizedApi ? mockApi : originalClock);
+            extend(global, globalizedApi ? api : originalClock);
         }
         return globalizedApi;
     };
@@ -176,7 +177,7 @@
         }        
     };
 
-    var mockApi = {
+    var api = {
         setTimeout: function(fn, ms){
             // handle exceptional parameters
             if(arguments.length === 0) {
@@ -211,10 +212,10 @@
     };
 
     // expose public api
-    global.MockClock = {
+    global.DeLorean = {
         reset: reset,
         advance: advance,
         globalApi: globalApi
     };
-    extend(global.MockClock, mockApi);
+    extend(global.DeLorean, api);
 })();

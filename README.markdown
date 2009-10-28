@@ -1,12 +1,14 @@
-MockClock
+DeLorean
 =========
-Flux capacitor for time-bound JavaScript unit testing, including timeouts, intervals, and dates
-[http://github.com/mmonteleone/mockclock][0]
+Flux capacitor for faking time-bound JavaScript unit testing, including timeouts, intervals, and dates
+[http://github.com/mmonteleone/delorean][0]
+
+*Documentation under heavy construction, but really there's not much to using this anyway*
 
 This is heavy, Doc
 ------------------
 
-MockClock provides dead-simple and fully accurate simulation of the passage of time in a web browser to aid in JavaScript unit testing.  Any code which makes use of `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval`, or `Date` can be run instantly against MockClock's own implementations.
+DeLorean provides dead-simple and fully accurate simulation of the passage of time in a web browser to aid in JavaScript unit testing.  Any code which makes use of `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval`, or `Date` can be run instantly against DeLorean's own implementations.
 
 ### Features
 
@@ -18,6 +20,7 @@ MockClock provides dead-simple and fully accurate simulation of the passage of t
   * Functions scheduled to otherwise occur in parallel are executed in proper native order
   * Proper (though unrecommended) API features such as the passing of eval-able strings is supported
   * Throws identical exceptions as native when necessary
+  * Scheduled functions are properly executed on the global scope
 * `Date` objects instantiated to the "current" time respect mocked time advancement
 * Keeps the DOM squeaky clean, and does not automatically replace native time APIs by default
 
@@ -26,13 +29,13 @@ MockClock provides dead-simple and fully accurate simulation of the passage of t
 API Documentation
 -----------------
 
-### MockClock.globalApi
-### MockClock.reset
-### MockClock.advance
-### MockClock.setTimeout
-### MockClock.setInterval
-### MockClock.clearTimeout
-### MockClock.clearInterval
+### DeLorean.globalApi
+### DeLorean.reset
+### DeLorean.advance
+### DeLorean.setTimeout
+### DeLorean.setInterval
+### DeLorean.clearTimeout
+### DeLorean.clearInterval
 
 Ronald Reagan?  The actor?
 --------------------------
@@ -40,7 +43,7 @@ Ronald Reagan?  The actor?
 
 
 
-[0]: http://github.com/mmonteleone/mockclock "MockClock"
+[0]: http://github.com/mmonteleone/delorean "DeLorean"
 [1]: http://michaelmonteleone.net "Michael Monteleone"
-[2]: http://cloud.github.com/downloads/mmonteleone/mockclock/mockclock_0_1.zip "MockClock download"
+[2]: http://cloud.github.com/downloads/mmonteleone/DeLorean/DeLorean_0_1.zip "DeLorean download"
 

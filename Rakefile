@@ -30,7 +30,7 @@ task :build => [:clean] do
   mkdir 'dist/example'
 
   # copy src
-  cp 'src/mockclock.js', 'dist/mockclock.js'
+  cp 'src/delorean.js', 'dist/delorean.js'
   
   # copy documentation
   cp 'doc/GPL-LICENSE.txt', 'dist/GPL-LICENSE.txt'
@@ -41,11 +41,11 @@ task :build => [:clean] do
   cp 'doc/example/example.html', 'dist/example/example.html'
   
   # minify src
-  source = File.read('dist/mockclock.js')
+  source = File.read('dist/delorean.js')
   minified = Packr.pack(source, :shrink_vars => true, :base62 => false)
 
   # inject header
-  File.open('dist/mockclock.min.js', 'w') do |combined|
+  File.open('dist/delorean.min.js', 'w') do |combined|
     combined.puts(IO.read('src/header.js'))
     combined.write(minified)  
   end
@@ -54,7 +54,7 @@ end
 desc "Generates a releasable zip archive"
 task :release => [:build] do
   root = pwd+'/dist'
-  zip_archive = pwd+'/dist/MockClock.zip'
+  zip_archive = pwd+'/dist/DeLorean.zip'
 
   Zip::ZipFile.open(zip_archive, Zip::ZipFile::CREATE) do |zip|
     Find.find(root) do |path|
@@ -69,10 +69,10 @@ desc "Run the tests in default browser"
 task :test => [:build] do  
   begin
     # mac
-    sh("open spec/mockclock.specs.html")
+    sh("open spec/delorean.specs.html")
   rescue
     # windows
-    sh("start spec/mockclock.specs.html")
+    sh("start spec/delorean.specs.html")
   end
 end
 

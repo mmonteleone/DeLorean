@@ -1,6 +1,6 @@
 DeLorean
 =========
-Flux capacitor for faking time-bound JavaScript unit testing, including timeouts, intervals, and dates
+Flux capacitor for accurately faking time-bound JavaScript unit testing, including timeouts, intervals, and dates
 [http://github.com/mmonteleone/delorean][0]
 
 *Documentation under heavy construction, but really there's not much to using this anyway*
@@ -23,23 +23,50 @@ DeLorean provides dead-simple and fully accurate simulation of the passage of ti
   * Scheduled functions are properly executed on the global scope
 * `Date` objects instantiated to the "current" time respect mocked time advancement
 * Keeps the DOM squeaky clean, and does not automatically replace native time APIs by default
+* Not coupled to any particular testing or general purpose JavaScript framework.  Go nuts.
 
 ### Example!
 
-API Documentation
------------------
+88 MPH
+------
 
-### DeLorean.globalApi
-### DeLorean.reset
-### DeLorean.advance
-### DeLorean.setTimeout
-### DeLorean.setInterval
-### DeLorean.clearTimeout
-### DeLorean.clearInterval
+### Requirements
+
+### Downloading/Installation
+
+### API Documentation
+
+#### DeLorean.globalApi
+#### DeLorean.reset
+#### DeLorean.advance
+#### DeLorean.setTimeout
+#### DeLorean.setInterval
+#### DeLorean.clearTimeout
+#### DeLorean.clearInterval
+#### DeLorean.Date
 
 Ronald Reagan?  The actor?
 --------------------------
 
+### How to Contribute
+
+
+
+Make Like A Tree
+----------------
+
+### Changelog
+
+* 0.1.1 - Renamed from MockClock to DeLorean for strictly technical reasons
+* 0.1 - Initial Release
+
+And Get Outta Here
+------------------
+
+### License
+
+Copyright (c) 2009 Michael Monteleone  
+Dual licensed under the MIT (MIT-LICENSE.txt) and GPL (GPL-LICENSE.txt) licenses.
 
 
 

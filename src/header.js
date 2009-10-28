@@ -1,5 +1,5 @@
 /**
- * DeLorean - Flux capacitor for faking time-bound JavaScript unit testing, including timeouts, intervals, and dates
+ * DeLorean - Flux capacitor for accurately faking time-bound JavaScript unit testing, including timeouts, intervals, and dates
  * 
  * http://michaelmonteleone.net/projects/delorean
  * http://github.com/mmonteleone/delorean

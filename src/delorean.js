@@ -48,7 +48,7 @@
         var shiftedDate;
         if (arguments.length === 0) {
             shiftedDate = new originalClock.Date();
-            shiftedDate.setMilliseconds(shiftedDate.getMilliseconds() + (currentlyAdvancing ? elapsedMs: advancedMs));
+            shiftedDate.setMilliseconds(shiftedDate.getMilliseconds() + effectiveOffset());
         } else if (arguments.length == 1) {
             shiftedDate = new originalClock.Date(arguments[0]);
         } else {
@@ -237,6 +237,10 @@
             executionInterrupted = true;
         }
     };
+    
+    var effectiveOffset = function() {
+        return currentlyAdvancing ? elapsedMs: advancedMs;
+    };
 
     var api = {
         setTimeout: function(fn, ms) {
@@ -274,6 +278,7 @@
 
     // expose public api
     global.DeLorean = {
+        offset: effectiveOffset,
         reset: reset,
         advance: advance,
         globalApi: globalApi

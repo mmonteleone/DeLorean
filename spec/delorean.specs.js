@@ -570,5 +570,31 @@ QUnit.specify("DeLorean", function() {
             })
         });
     });
+    describe("offset", function() {
+        after(function(){
+            DeLorean.reset();            
+        });
+        
+        it("should return accumulation of elapsed ms", function() {
+            DeLorean.advance(10);
+            assert(DeLorean.offset()).equals(10);                        
+            DeLorean.advance(3);
+            assert(DeLorean.offset()).equals(13);
+            DeLorean.advance(12);
+            assert(DeLorean.offset()).equals(25);
+        });
+        
+        it("should return proper accumulation of elapsed ms, even within intervaled callbacks", function(){
+            var calls = [];
+            DeLorean.setInterval(function(){
+                calls.push(DeLorean.offset());
+                DeLorean.setTimeout(function(){
+                    calls.push(DeLorean.offset());
+                }, 3);
+            }, 5);
+            DeLorean.advance(20);
+            assert(calls).isSameAs([5,8,10,13,15,18,20]);
+        });
+    });
 });
 

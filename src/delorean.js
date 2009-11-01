@@ -12,7 +12,7 @@
         
     var global = this;          // capture reference to global scope     
     var globalizedApi = false;  // whether or not api has been injected into global scope    
-    var funcs = {};             // collection of scheduled functions    
+    var callbacks = {};         // collection of scheduled functions    
     var advancedMs = 0;         // accumulation of total requested ms advancements
     var elapsedMs = 0;          // accumulation of current time as of each callback    
     var funcCount = 0;          // number of scheduled functions
@@ -75,7 +75,7 @@
      * removing all scheduled functions
      */
     var reset = function() {
-        funcs = {};
+        callbacks = {};
         funcCount = 0;
         advancedMs = 0;
         currentlyAdvancing = false;
@@ -138,8 +138,8 @@
                 executionInterrupted = false;
 
                 // collect applicable functions to run
-                for (var id in funcs) {
-                    var fn = funcs[id];
+                for (var id in callbacks) {
+                    var fn = callbacks[id];
                     
                     // schedule all non-repeating timeouts that fall within advvanced range
                     if (!fn.repeats && fn.firstRunAt <= range.end) {
@@ -161,9 +161,13 @@
                     }
                 }
 
-                // sort all the scheduled functions to execute in correct browser order
+                // sort all the scheduled callback instances to 
+                // execute in correct browser order
                 schedule.sort(function(a, b) {
-                    // ~ order by execution point ASC, interval length DESC, order of addition ASC
+                    // ORDER BY
+                    //   [execution point] ASC, 
+                    //   [interval length] DESC, 
+                    //   [order of addition] ASC
                     var order = a.at - b.at;
                     if (order === 0) {
                         order = b.fn.ms - a.fn.ms;
@@ -174,13 +178,13 @@
                     return order;
                 });        
 
-                // run functions
+                // run scheduled callback instances
                 var ran = [];
                 for (var i = 0; i < schedule.length; ++i) {
                     var fn = schedule[i].fn;                    
-                    // only run fn's that still exist, since a particular fn could
-                    // have been cleared by a subsequent run of anther callback
-                    if ( !! funcs[fn.id]) {
+                    // only run callbacks that are still in master schedule, since a 
+                    // callback could have been cleared by a subsequent run of anther callback
+                    if ( !! callbacks[fn.id]) {
                         elapsedMs = schedule[i].at;
                         // run fn surrounded by a state of
                         // currently advancing
@@ -197,7 +201,7 @@
                             // completely trash non-repeating instance 
                             // from ever being scheduled again 
                             if (!fn.repeats) {
-                                removeFunction(fn.id);
+                                removeCallback(fn.id);
                             }
                             
                             // execution could have been interrupted if 
@@ -218,7 +222,13 @@
         return effectiveOffset();
     };
 
-    var addFunction = function(fn, ms, repeats) {
+    /**
+     * Adds a callback to the master schedule
+     * @param {Function} fn callback function
+     * @param {Number} ms millisecond at which to schedule callback
+     * @returns unique Number id of scheduled callback
+     */
+    var addCallback = function(fn, ms, repeats) {        
         // if scheduled fn was old-school string of code
         // (yes, js officially allows for this)
         if (typeof(fn) == 'string') {
@@ -226,7 +236,7 @@
         }
         var at = effectiveOffset();
         var id = funcCount++;
-        funcs[id] = {
+        callbacks[id] = {
             id: id,
             fn: fn,
             ms: ms,
@@ -235,27 +245,46 @@
             lastRunAt: null,
             repeats: repeats
         };
+        
+        // stop any currently advancing range of fns
+        // so that newly scheduled callback can be 
+        // rolled into advance's schedule (if necessary)
+        if (currentlyAdvancing) {
+            executionInterrupted = true;
+        }
+        
         return id;
     };
 
-    var removeFunction = function(id) {
-        delete funcs[id];
+    /**
+     * Removes a callback from the master schedule
+     * @param {Number} id callback identifier
+     */
+    var removeCallback = function(id) {
+        delete callbacks[id];
     };
 
-    var globalApi = function(value) {
-        if (typeof(value) !== 'undefined') {
-            globalizedApi = value;
+    /**
+     * Gets (and optinally sets) value of whether
+     * the native timing functions 
+     * (setInterval, clearInterval, setTimeout, clearTimeout, Date) 
+     * should be overwritten by DeLorean's fakes
+     * @param {Boolean} shouldOverrideGlobal optional value, when passed, adds or removes the api from global scope
+     * @returns {Boolean} true if native API is overwritten, false if not
+     */
+    var globalApi = function(shouldOverrideGlobal) {
+        if (typeof(shouldOverrideGlobal) !== 'undefined') {
+            globalizedApi = shouldOverrideGlobal;
             extend(global, globalizedApi ? api: originalClock);
         }
         return globalizedApi;
     };
 
-    var conditionallyInterruptExecution = function() {
-        if (currentlyAdvancing) {
-            executionInterrupted = true;
-        }
-    };
-    
+    /**
+     * Faked timing API
+     * These are kept in their own object to allow for easy 
+     * extending and unextending of them from the global scope
+     */
     var api = {
         setTimeout: function(fn, ms) {
             // handle exceptional parameters
@@ -264,12 +293,10 @@
             } else if (arguments.length === 1 && isNumeric(arguments[0])) {
                 throw ("useless setTimeout call (missing quotes around argument?)");
             } else if (arguments.length === 1) {
-                return addFunction(fn, 0, false);
+                return addCallback(fn, 0, false);
             }
-            // stop any currently executing range of fns
-            conditionallyInterruptExecution();
             // schedule func
-            return addFunction(fn, ms, false);
+            return addCallback(fn, ms, false);
         },
         setInterval: function(fn, ms) {
             // handle exceptional parameters
@@ -278,25 +305,25 @@
             } else if (arguments.length === 1 && isNumeric(arguments[0])) {
                 throw ("useless setTimeout call (missing quotes around argument?)");
             } else if (arguments.length === 1) {
-                return addFunction(fn, 0, false);
+                return addCallback(fn, 0, false);
             }
-            // stop any currently executing range of fns
-            conditionallyInterruptExecution();
             // schedule func
-            return addFunction(fn, ms, true);
+            return addCallback(fn, ms, true);
         },
-        clearTimeout: removeFunction,
-        clearInterval: removeFunction,
+        clearTimeout: removeCallback,
+        clearInterval: removeCallback,
         Date: ShiftedDate
     };
 
-    // expose public api
+    // expose a public api containing DeLorean utility methods
     global.DeLorean = {
         reset: reset,
         advance: advance,
         globalApi: globalApi
     };
+    // extend public API with the timing methods
     extend(global.DeLorean, api);
-    
+
+    // set the initial state
     reset();    
 })();

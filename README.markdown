@@ -39,7 +39,6 @@ DeLorean provides dead-simple and fully accurate simulation of the passage of ti
 #### DeLorean.globalApi
 #### DeLorean.reset
 #### DeLorean.advance
-#### DeLorean.offset
 #### DeLorean.setTimeout
 #### DeLorean.setInterval
 #### DeLorean.clearTimeout

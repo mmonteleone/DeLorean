@@ -91,7 +91,16 @@
     var isNumeric = function(value) {
         return value !== null && !isNaN(value);
     };
-
+    
+    /**
+     * Helper function to return the effective current offset of time
+     * from the perspective of executing callbacks
+     * @returns milliseconds as Number
+     */
+    var effectiveOffset = function() {
+        return currentlyAdvancing ? elapsedMs: advancedMs;
+    };    
+    
     /**
      * Advances fake time by an arbitrary quantity of milliseconds,
      * executing all scheduled callbacks that would have occurred within
@@ -99,103 +108,114 @@
      * @param {Number} ms quantity of milliseconds to advance fake clock
      */
     var advance = function(ms) {
-        if (!isNumeric(ms) || ms < 0) {
-            throw ("'ms' argument must be a positive number");
-        }
-        var queue = [];         // queue of scheduled callbacks to be executed
-        var start = advancedMs; // beginning of range to execute
-        var fn;                 // holds current fn
-        advancedMs += ms;       
-
-        /**
-         * executes a scheduled callback function, and 
-         * sets state regarding the currently-advancing state         
-         */
-        var executeScheduledFunction = function(fn) {
-            currentlyAdvancing = true;
-            try {
-                elapsedMs = queue[i].at;
-                fn.apply(global);
-            } finally {
-                currentlyAdvancing = false;
+        // advance can optionally accept no parameters 
+        // for just returning accumulated advanced offset
+        if(!!ms) {            
+            if (!isNumeric(ms) || ms < 0) {
+                throw ("'ms' argument must be a positive number");
             }
-        };
+            // scheduled callbacks to be executed within range
+            var schedule = [];         
+            // build an object to hold time range of this advancement
+            var range = {
+                start: advancedMs,
+                end: advancedMs += ms                
+            };
+            
+            // register an instance of a callback to occur
+            // at a particular point in this advance's schedule
+            var register = function(fn, at) {
+                schedule.push({
+                    fn: fn,
+                    at: at                    
+                });
+            };
 
-        do {
-            executionInterrupted = false;
+            // loop through the scheduleing and execution of callback
+            // functions since callbacks could possibly schedule more
+            // callbacks of their own (which would interrupt execution)
+            do {
+                executionInterrupted = false;
 
-            // collect applicable functions to run
-            for (var id in funcs) {
-                fn = funcs[id];
-                // non-repeating timeouts that fall within time range
-                if (!fn.repeats && fn.firstRunAt <= advancedMs) {
-                    queue.push({
-                        fn: fn,
-                        at: fn.firstRunAt
-                    });
-                    // collect applicable intervals
-                } else {
-                    if (fn.lastRunAt === null &&
-                        fn.firstRunAt > start &&
-                        (fn.lastRunAt || fn.firstRunAt) <= advancedMs) {
-                            fn.lastRunAt = fn.firstRunAt;
-                            queue.push({
-                                fn: fn,
-                                at: fn.lastRunAt
-                            });
-                    }
-                    // add as many instances of interval fn as would occur within range
-                    while ((fn.lastRunAt || fn.firstRunAt) + fn.ms <= advancedMs) {
-                        fn.lastRunAt += fn.ms;
-                        queue.push({
-                            fn: fn,
-                            at: fn.lastRunAt
-                        });
+                // collect applicable functions to run
+                for (var id in funcs) {
+                    var fn = funcs[id];
+                    
+                    // schedule all non-repeating timeouts that fall within advvanced range
+                    if (!fn.repeats && fn.firstRunAt <= range.end) {
+                        register(fn, fn.firstRunAt);
+                    // schedule repeating inervals that would fall during the range
+                    } else {
+                        // schedule instances of first runs of intervals
+                        if (fn.lastRunAt === null &&
+                            fn.firstRunAt > range.start &&
+                            (fn.lastRunAt || fn.firstRunAt) <= range.end) {
+                                fn.lastRunAt = fn.firstRunAt;
+                                register(fn, fn.lastRunAt);
+                        }
+                        // add as many instances of interval callbacks as would occur within range
+                        while ((fn.lastRunAt || fn.firstRunAt) + fn.ms <= range.end) {
+                            fn.lastRunAt += fn.ms;
+                            register(fn, fn.lastRunAt);
+                        }
                     }
                 }
-            }
 
-            // sort functions to run in correct order
-            queue.sort(function(a, b) {
-                // ~ order by execution point ASC, interval length DESC, order of addition ASC
-                var order = a.at - b.at;
-                if (order === 0) {
-                    order = b.fn.ms - a.fn.ms;
+                // sort all the scheduled functions to execute in correct browser order
+                schedule.sort(function(a, b) {
+                    // ~ order by execution point ASC, interval length DESC, order of addition ASC
+                    var order = a.at - b.at;
                     if (order === 0) {
-                        order = a.fn.id - b.fn.id;
+                        order = b.fn.ms - a.fn.ms;
+                        if (order === 0) {
+                            order = a.fn.id - b.fn.id;
+                        }
+                    }
+                    return order;
+                });        
+
+                // run functions
+                var ran = [];
+                for (var i = 0; i < schedule.length; ++i) {
+                    var fn = schedule[i].fn;                    
+                    // only run fn's that still exist, since a particular fn could
+                    // have been cleared by a subsequent run of anther callback
+                    if ( !! funcs[fn.id]) {
+                        elapsedMs = schedule[i].at;
+                        // run fn surrounded by a state of
+                        // currently advancing
+                        currentlyAdvancing = true;
+                        try {
+                            // run callback function on global context
+                            fn.fn.apply(global);
+                        } finally {
+                            currentlyAdvancing = false;
+                            
+                            // record this fn instance as having occurred, and thus trashable
+                            ran.push(i);
+
+                            // completely trash non-repeating instance 
+                            // from ever being scheduled again 
+                            if (!fn.repeats) {
+                                removeFunction(fn.id);
+                            }
+                            
+                            // execution could have been interrupted if 
+                            // a callback had performed some scheduling of its own
+                            if (executionInterrupted) {
+                                break;
+                            }
+                        }                        
                     }
                 }
-                return order;
-            });
-
-            // run functions
-            var toSplice = [];
-            for (var i = 0; i < queue.length; ++i) {
-
-                fn = queue[i].fn;
-                // only run fn's that still exist, since a particular fn could
-                // have been cleared by a run fn since the fn was previously scheduled
-                if ( !! funcs[fn.id]) {
-                    // run fn on global context
-                    executeScheduledFunction(fn.fn);
-                    // for efficiency, remove non-repeating after execution
-                    if (!fn.repeats) {
-                        removeFunction(fn.id);
-                    }
-                    toSplice.push(i);
-                    if (executionInterrupted) {
-                        break;
-                    }
+                // remove all run callback instances from schedule
+                for (var i = ran.length - 1; i >= 0; i--) {
+                    schedule.splice(ran[i], 1);
                 }
             }
-            for (var i = toSplice.length - 1; i >= 0; i--) {
-                queue.splice(toSplice[i], 1);
-            }
-
-
+            while (executionInterrupted);            
         }
-        while (executionInterrupted);
-
+        return effectiveOffset();
     };
 
     var addFunction = function(fn, ms, repeats) {
@@ -204,7 +224,7 @@
         if (typeof(fn) == 'string') {
             fn = new Function(fn);
         }
-        var at = currentlyAdvancing ? elapsedMs: advancedMs;
+        var at = effectiveOffset();
         var id = funcCount++;
         funcs[id] = {
             id: id,
@@ -230,18 +250,12 @@
         return globalizedApi;
     };
 
-    reset();
-
     var conditionallyInterruptExecution = function() {
         if (currentlyAdvancing) {
             executionInterrupted = true;
         }
     };
     
-    var effectiveOffset = function() {
-        return currentlyAdvancing ? elapsedMs: advancedMs;
-    };
-
     var api = {
         setTimeout: function(fn, ms) {
             // handle exceptional parameters
@@ -278,10 +292,11 @@
 
     // expose public api
     global.DeLorean = {
-        offset: effectiveOffset,
         reset: reset,
         advance: advance,
         globalApi: globalApi
     };
     extend(global.DeLorean, api);
+    
+    reset();    
 })();

@@ -7,7 +7,6 @@ require 'find'
 require 'fileutils'
 include FileUtils
 
-  
 task :default => :test
 
 # list of browsers to auto-bind to JsTestDrive Server
@@ -30,23 +29,24 @@ task :build => [:clean] do
   mkdir 'dist/example'
 
   # copy src
-  cp 'src/delorean.js', 'dist/delorean.js'
+  cp 'delorean.js', 'dist/delorean.js'
   
   # copy documentation
-  cp 'doc/GPL-LICENSE.txt', 'dist/GPL-LICENSE.txt'
-  cp 'doc/MIT-LICENSE.txt', 'dist/MIT-LICENSE.txt'
   cp 'README.markdown', 'dist/README.markdown'
   
-  # copy example
-  cp 'doc/example/example.html', 'dist/example/example.html'
+  # copy examples
+  cp 'example/example1.html', 'dist/example/example1.html'
+  cp 'example/example2.html', 'dist/example/example2.html'
+  cp 'example/example3.html', 'dist/example/example3.html'
   
   # minify src
   source = File.read('dist/delorean.js')
   minified = Packr.pack(source, :shrink_vars => true, :base62 => false)
+  header = /\/\*.*?\*\//m.match(source)
 
   # inject header
   File.open('dist/delorean.min.js', 'w') do |combined|
-    combined.puts(IO.read('src/header.js'))
+    combined.puts(header)
     combined.write(minified)  
   end
 end

@@ -5,8 +5,7 @@
  * http://github.com/mmonteleone/delorean
  *
  * Copyright (c) 2009 Michael Monteleone
- * Dual licensed under the MIT (MIT-LICENSE.txt)
- * and GPL (GPL-LICENSE.txt) licenses.
+ * Licensed under terms of the MIT License (README.markdown)
  */
  (function() {
         

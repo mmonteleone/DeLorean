@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>DeLorean examples</title>
+<script src="../delorean.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+
+<h1>DeLorean</h1>
+<h2>Example of support for complex, nested, scheduling and clearing of intervals</h2>
+
+<pre id="log" />
+
+<script type="text/javascript" charset="utf-8">
+
+function log(message) {
+	document.getElementById('log').innerHTML += 
+		'[ms offset: ' + DeLorean.advance() + ']  ' + message + "\n";
+}
+
+// optionally overwrite native api 
+DeLorean.globalApi(true);  
+
+var intervalCount = 0,
+	timeoutCount = 0;
+
+// log a message every 5 seconds		
+var intervalId = setInterval(function(){				
+	log('interval ' + intervalCount++);	
+				
+	// schedule another message to be logged 3 seconds from here				
+	setTimeout(function(){
+		log('timeout  ' + timeoutCount++);
+		
+		// clear the outer interval if has occurred 4 times
+		if(intervalCount >= 4) {
+			clearInterval(intervalId);
+		}
+		
+	}, 3000);		
+	
+}, 5000);
+
+
+DeLorean.advance(30000);
+
+</script>
+
+</body>
+</html>

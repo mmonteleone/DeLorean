@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>DeLorean examples</title>
+<script src="../delorean.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+
+<h1>DeLorean</h1>
+<h2>Simple example of setting an interval and advancing the clock</h2>
+
+<pre id="log" />
+
+<script type="text/javascript" charset="utf-8">
+
+function log(message) {
+	document.getElementById('log').innerHTML += 
+		'[ms offset: ' + DeLorean.advance() + ']  ' + message + "\n";
+}
+
+// schedule a message to be logged every 10 seconds
+DeLorean.setInterval(function(){
+	log('executing callback');
+}, 10000);
+
+// instantly advance fake clock ahead 30 seconds
+DeLorean.advance(30000);
+
+</script>
+
+</body>
+</html>

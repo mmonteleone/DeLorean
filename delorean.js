@@ -1,5 +1,8 @@
 /**
- * DeLorean - Flux capacitor for accurately faking time-bound JavaScript unit testing, including timeouts, intervals, and dates
+ * DeLorean - Flux capacitor for accurately faking time-bound 
+ * JavaScript unit testing, including timeouts, intervals, and dates
+ *
+ * version 0.1.2
  * 
  * http://michaelmonteleone.net/projects/delorean
  * http://github.com/mmonteleone/delorean
@@ -8,8 +11,9 @@
  * Licensed under terms of the MIT License (README.markdown)
  */
  (function() {
-        
+
     var global = this;          // capture reference to global scope     
+    var version = '0.1.2';
     var globalizedApi = false;  // whether or not api has been injected into global scope    
     var callbacks = {};         // collection of scheduled functions    
     var advancedMs = 0;         // accumulation of total requested ms advancements
@@ -318,7 +322,8 @@
     global.DeLorean = {
         reset: reset,
         advance: advance,
-        globalApi: globalApi
+        globalApi: globalApi,
+        version: version
     };
     // extend public API with the timing methods
     extend(global.DeLorean, api);

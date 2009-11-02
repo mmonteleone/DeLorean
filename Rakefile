@@ -79,24 +79,24 @@ end
 
 desc "Run the tests against JsTestDriver"
 task :testdrive => [:build] do
-  sh("java -jar lib/js-test-driver/JsTestDriver.jar --tests all --captureConsole --reset")
+  sh("java -jar spec/lib/js-test-driver/JsTestDriver.jar --tests all --captureConsole --reset")
 end
 
 
 desc "Start the JsTestDriver server"
 task :server => [:install_server] do
   browsers = BROWSERS.find_all{|b| File.exists? b}.join(',')
-  sh("java -jar lib/js-test-driver/JsTestDriver.jar --port 9876 --browser \"#{browsers}\"")
+  sh("java -jar spec/lib/js-test-driver/JsTestDriver.jar --port 9876 --browser \"#{browsers}\"")
 end
 
 
 desc "Download Google JsTestDriver"
 task :install_server do
-  if !File.exist?('lib/js-test-driver/JsTestDriver.jar') then
+  if !File.exist?('spec/lib/js-test-driver/JsTestDriver.jar') then
     puts 'Downloading JsTestDriver from Google (http://js-test-driver.googlecode.com/files/JsTestDriver-1.0b.jar) ...'
     Net::HTTP.start("js-test-driver.googlecode.com") do |http|
       resp = http.get("/files/JsTestDriver-1.0b.jar")
-      open("lib/js-test-driver/JsTestDriver.jar", "wb") do |file|
+      open("spec/lib/js-test-driver/JsTestDriver.jar", "wb") do |file|
         file.write(resp.body)
       end
     end
@@ -108,4 +108,4 @@ end
 # clean deletes built copies
 CLEAN.include('dist/')
 # clobber cleans and uninstalls JsTestDriver server
-CLOBBER.include('lib/js-test-driver/*.jar')  
+CLOBBER.include('spec/lib/js-test-driver/*.jar')  

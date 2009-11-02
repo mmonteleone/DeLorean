@@ -1,9 +1,7 @@
 DeLorean
 =========
-Flux capacitor for accurately faking time-bound JavaScript unit testing, including timeouts, intervals, and dates
+Flux capacitor for accurately faking time-bound JavaScript unit testing, including timeouts, intervals, and dates  
 [http://github.com/mmonteleone/delorean][0]
-
-*Documentation under heavy construction, but really there's not much to using this anyway*
 
 This is heavy, Doc
 ------------------
@@ -267,7 +265,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [0]: http://github.com/mmonteleone/delorean "DeLorean"
 [1]: http://michaelmonteleone.net "Michael Monteleone"
 [2]: http://cloud.github.com/downloads/mmonteleone/DeLorean/DeLorean.zip "DeLorean Release"
-[3]: http://github.com/mmonteleone/DeLorean/blob/master/delorean.js "DeLorean Script"
+[3]: http://github.com/mmonteleone/DeLorean/raw/master/delorean.js "DeLorean Script"
 [4]: git://github.com/mmonteleone/DeLorean.git
 [5]: https://developer.mozilla.org/En/Window.setTimeout "MDC: setTimeout"
 [6]: https://developer.mozilla.org/En/Window.setInterval "MDC: setInterval"

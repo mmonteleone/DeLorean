@@ -8,6 +8,8 @@ This is heavy, Doc
 
 DeLorean provides dead-simple and fully accurate simulation of the passage of time in a web browser to aid in JavaScript unit testing.  Any code which makes use of `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval`, or `Date` can be run instantly against DeLorean's own implementations.
 
+"But shouldn't you just mock and verify setInterval and setTimeout calls and inject them as dependencies to your code under test instead?"  Yes, when possible, mocking would be a better alternative to faking.  But some code makes such intricate use of timing that it can be overly tedious to mock, and can also introduce too much coupling between the test and knowledge of the target's implementation.  Also, it is sometimes necessary to test JavaScript not written with dependency injection in mind.
+
 ### Features
 
 * Time can be advanced by arbitrary amounts instantly

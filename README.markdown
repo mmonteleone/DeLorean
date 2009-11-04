@@ -115,7 +115,7 @@ DeLorean provides dead-simple and fully accurate simulation of the passage of ti
 
 ### Requirements
 
-DeLorean has no external library dependencies, and is tested across all modern browsers.
+DeLorean has no external library dependencies, and has been tested in IE6, IE7, IE8, FireFox 3.5, Safari 4, Chromium, and Opera 10.
 
 ### Downloading/Installation
 
@@ -187,7 +187,7 @@ Fake of a native [window.clearTimeout][7].  Clears the delay set by `DeLorean.se
 
 * id (Number) - the ID of the timeout you wish to clear, as returned by `DeLorean.setTimeout()`
 
-#### DeLorean.clearInterval
+#### DeLorean.clearInterval(id)
 
 Fake of a native [window.clearInterval][8].  Clears the interval set by `DeLorean.setInterval()`.  
 

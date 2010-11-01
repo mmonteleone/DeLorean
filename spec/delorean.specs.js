@@ -49,6 +49,7 @@ QUnit.specify("DeLorean", function() {
             it("should keep Date prototype methods", function(){
                 assert(Date.parse).isDefined();
                 assert(Date.UTC).isDefined();
+                assert(Date.now).isDefined();
             });
 
             it("should not inject 'globalApi', 'reset', or 'advance'", function(){
@@ -538,7 +539,6 @@ QUnit.specify("DeLorean", function() {
         after(function(){
             DeLorean.reset();
         });
-
         it("should behave same as native Date when passed one argument", function(){
             var originalDate = new original.Date(699769876987);
             var mockDate = new DeLorean.Date(699769876987);

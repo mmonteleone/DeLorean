@@ -23,6 +23,17 @@
     var executionInterrupted = false;   // whether or not last advance was interrupted
 
     /**
+     * Basic extension helper for copying properties of one object to another
+     * @param {Object} dest object to receive properties
+     * @param {Object} src object containing properties to copy
+     */
+    var extend = function(dest, src) {
+        for (var prop in src) {
+            dest[prop] = src[prop];
+        }
+    };
+
+    /**
      * Captures references to original values of timing functions
      */
     var originalClock = {
@@ -63,19 +74,11 @@
     };
 
     // Keep prototype methods over the facade class
-    ShiftedDate.parse = originalClock.Date.parse;
-    ShiftedDate.UTC = originalClock.Date.UTC;
-
-    /**
-     * Basic extension helper for copying properties of one object to another
-     * @param {Object} dest object to receive properties
-     * @param {Object} src object containing properties to copy
-     */
-    var extend = function(dest, src) {
-        for (var prop in src) {
-            dest[prop] = src[prop];
-        }
-    };
+    extend(ShiftedDate, {
+        parse: originalClock.Date.parse,
+        UTC: originalClock.Date.UTC,
+        now: originalClock.Date.now
+    });
 
     /**
      * Resets fake time advancement back to 0,

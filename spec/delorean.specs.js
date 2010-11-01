@@ -22,6 +22,8 @@ QUnit.specify("DeLorean", function() {
 
     describe("globalApi", function(){
 
+        var originalDate = window.Date;
+
         it("should return 'false' by default", function(){
             var result = DeLorean.globalApi();
             assert(result).isFalse();
@@ -46,10 +48,10 @@ QUnit.specify("DeLorean", function() {
                 assert(window.clearTimeout).equals(DeLorean.clearTimeout);
             });
 
-            it("should keep Date prototype methods", function(){
-                assert(Date.parse).isDefined();
-                assert(Date.UTC).isDefined();
-                assert(Date.now).isDefined();
+            it("should keep Date methods", function(){
+                assert(Date.parse).equals(originalDate.parse)
+                assert(Date.UTC).equals(originalDate.UTC)
+                assert(Date.now).equals(originalDate.now)
             });
 
             it("should not inject 'globalApi', 'reset', or 'advance'", function(){
